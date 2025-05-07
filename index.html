@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather App</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+  background-color: black;
+  /* Make sure the page can scroll vertically */
+  overflow-x: hidden; /* Optional: hides horizontal scroll only */
+}
+
+
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      min-width: 100%;
+      min-height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      filter: brightness(0.4);
+    }
+
+    .card {
+      width: 90%;
+      max-width: 470px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      margin: 100px auto 0;
+      border-radius: 30px;
+      padding: 40px 35px;
+      text-align: center;
+    }
+
+    .search {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .search input {
+      border: 0;
+      outline: 0;
+      background: #ebfffc;
+      color: #555;
+      padding: 10px 25px;
+      height: 60px;
+      border-radius: 40px;
+      flex: 1;
+      margin-right: 16px;
+      font-size: 18px;
+    }
+
+    .search button {
+      border: 0;
+      outline: 0;
+      background: #ebfffc;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .search button:hover {
+      transform: scale(1.1);
+    }
+
+    .search button img {
+      width: 16px;
+    }
+
+    .weather-icon {
+      width: 170px;
+      margin-top: 30px;
+      transition: transform 0.4s ease;
+    }
+
+    .weather-icon:hover {
+      transform: scale(1.05) rotate(5deg);
+    }
+
+    .weather h1 {
+      font-size: 80px;
+      font-weight: 400;
+    }
+
+    .weather h2 {
+      font-size: 45px;
+      font-weight: 400;
+      margin-top: -10px;
+    }
+
+    .details {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      margin-top: 50px;
+    }
+
+    .col {
+      display: flex;
+      align-items: center;
+      text-align: left;
+    }
+
+    .col img {
+      width: 40px;
+      margin-right: 10px;
+    }
+
+    .humidity, .wind {
+      font-size: 28px;
+    }
+
+    .weather {
+      display: none;
+    }
+
+    .error {
+      margin-top: 40px;
+      text-align: center;
+      color: rgb(254, 193, 193);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <video autoplay muted loop id="bg-video">
+    <source id="video-source" src="https://cdn.pixabay.com/video/2017/06/11/9825-221185540_large.mp4" type="video/mp4">
+    Your browser does not support HTML5 video.
+  </video>
+
+  <div class="card">
+    <div class="search">
+      <input type="text" placeholder="Enter City Name" spellcheck="false" />
+      <button onclick="checkWeather()"><img src="images/search.png" alt="search" /></button>
+    </div>
+    <div class="error">
+      <h2>Name is Invalid</h2>
+    </div>
+    <div class="weather">
+      <img src="images/rain.png" class="weather-icon" alt="weather-icon" />
+      <h1 class="temp">22ºC</h1>
+      <h2 class="city">New York</h2>
+      <div class="details">
+        <div class="col">
+          <img src="images/humidity.png" alt="humidity" />
+          <div>
+            <p class="humidity">50%</p>
+            <p>Humidity</p>
+          </div>
+        </div>
+        <div class="col">
+          <img src="images/wind.png" alt="wind" />
+          <div>
+            <p class="wind">15 Km/h</p>
+            <p>Wind Speed</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const apikey = "971e55f329b4867183558b5952336187";
+    const apiurl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+
+    async function checkWeather() {
+      const city = document.querySelector("input").value;
+      const weatherIcon = document.querySelector(".weather-icon");
+      const response = await fetch(apiurl + city + `&appid=${apikey}`);
+
+      if (response.status === 404) {
+        document.querySelector(".error").style.display = "block";
+        document.querySelector(".weather").style.display = "none";
+      } else {
+        const data = await response.json();
+
+        document.querySelector(".city").innerHTML = data.name;
+        document.querySelector(".temp").innerHTML = data.main.temp + "ºC";
+        document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+        document.querySelector(".wind").innerHTML = data.wind.speed + " Km/h";
+
+        // Update background video based on weather
+        const weatherMain = data.weather[0].main;
+        let videoSrc = "";
+
+        if (weatherMain === "Clouds") {
+          weatherIcon.src = "images/clouds.png";
+          videoSrc = "https://cdn.pixabay.com/video/2024/09/09/230528_large.mp4";
+        } else if (weatherMain === "Clear") {
+          weatherIcon.src = "images/clear.png";
+          videoSrc = "https://cdn.pixabay.com/video/2017/07/25/10948-226983364_large.mp4";
+        } else if (weatherMain === "Rain" || weatherMain === "Drizzle") {
+          weatherIcon.src = "images/rain.png";
+          videoSrc = "https://cdn.pixabay.com/video/2017/06/11/9825-221185540_large.mp4";
+        } else if (weatherMain === "Mist") {
+          weatherIcon.src = "images/mist.png";
+          videoSrc = "https://cdn.pixabay.com/video/2017/01/13/7328-199383367_large.mp4";
+        } else {
+          // Default fallback
+          weatherIcon.src = "images/clouds.png";
+          videoSrc = "https://cdn.pixabay.com/video/2017/06/11/9825-221185540_large.mp4";
+        }
+
+        const video = document.getElementById('bg-video');
+        const source = document.getElementById('video-source');
+        if (source.getAttribute('src') !== videoSrc) {
+          source.setAttribute('src', videoSrc);
+          video.load();
+        }
+
+        document.querySelector(".weather").style.display = "block";
+        document.querySelector(".error").style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>
